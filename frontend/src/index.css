@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-main: #f7fbff;
+  --bg-card: #ffffff;
+  --text-main: #0f172a;
+  --text-subtle: #475569;
+  --brand: #0a4f6e;
+  --brand-soft: #d7eff9;
+  --accent: #ff7a59;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Manrope', sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 8% 8%, #d9f0ff 0%, transparent 34%),
+    radial-gradient(circle at 90% 0%, #ffe8e1 0%, transparent 32%),
+    linear-gradient(135deg, #f8fcff 0%, #eff7ff 48%, #f8fcff 100%);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.glass {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.96));
+  backdrop-filter: blur(8px);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f8fafc 37%, #e2e8f0 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.3s ease infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

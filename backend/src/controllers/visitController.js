@@ -101,20 +101,40 @@ async function uploadToCloudinary(localPath) {
   return result.secure_url;
 }
 
-async function persistImageUrls(files = []) {
-  if (!files.length) return [];
+async function persistFiles(files = [], forAttachments = false) {
+  if (!files || !files.length) return forAttachments ? [] : [];
 
   if (!hasCloudinaryConfig) {
-    return files.map((file) => `/uploads/${file.filename}`);
+    // Local paths
+    return files.map((file) => {
+      const url = `/uploads/${file.filename}`;
+      if (forAttachments) return { url, filename: file.originalname, mimeType: file.mimetype };
+      return url;
+    });
   }
 
-  const urls = [];
+  const results = [];
   for (const file of files) {
-    const url = await uploadToCloudinary(file.path);
-    urls.push(url);
+    const opts = { folder: 'industrial-visits' };
+    if (forAttachments) opts.resource_type = 'auto';
+
+    const uploaded = await cloudinary.uploader.upload(file.path, opts);
+    const url = uploaded.secure_url;
     fs.unlinkSync(file.path);
+
+    if (forAttachments) {
+      results.push({
+        url,
+        filename: file.originalname,
+        mimeType: file.mimetype,
+        resourceType: uploaded.resource_type || 'auto',
+      });
+    } else {
+      results.push(url);
+    }
   }
-  return urls;
+
+  return results;
 }
 
 function extractPublicId(url) {
@@ -124,20 +144,20 @@ function extractPublicId(url) {
   return `${folder}/${fileName.split('.')[0]}`;
 }
 
-async function removeImageByUrl(imageUrl) {
-  if (!imageUrl) return;
+async function removeFileByUrl(fileUrl, resourceType = 'image') {
+  if (!fileUrl) return;
 
-  if (imageUrl.startsWith('/uploads/')) {
-    const localPath = path.join(process.cwd(), imageUrl.replace('/uploads/', 'uploads/'));
+  if (fileUrl.startsWith('/uploads/')) {
+    const localPath = path.join(process.cwd(), fileUrl.replace('/uploads/', 'uploads/'));
     if (fs.existsSync(localPath)) {
       fs.unlinkSync(localPath);
     }
     return;
   }
 
-  if (hasCloudinaryConfig && imageUrl.includes('res.cloudinary.com')) {
-    const publicId = extractPublicId(imageUrl);
-    await cloudinary.uploader.destroy(publicId);
+  if (hasCloudinaryConfig && fileUrl.includes('res.cloudinary.com')) {
+    const publicId = extractPublicId(fileUrl);
+    await cloudinary.uploader.destroy(publicId, { resource_type: resourceType || 'image' });
   }
 }
 
@@ -203,7 +223,8 @@ async function createVisit(req, res) {
     return res.status(400).json({ message: 'Please provide all required fields.' });
   }
 
-  const imageUrls = await persistImageUrls(req.files || []);
+  const imageUrls = await persistFiles((req.files && req.files.images) || [], false);
+  const attachments = await persistFiles((req.files && req.files.attachments) || [], true);
 
   const visit = await Visit.create({
     companyName: normalizeValue(companyName),
@@ -214,6 +235,7 @@ async function createVisit(req, res) {
     location: normalizeValue(location),
     studentsCount: Number(studentsCount),
     images: imageUrls,
+    attachments,
   });
 
   return res.status(201).json(visit);
@@ -239,10 +261,10 @@ async function updateVisit(req, res) {
   updates.section = nextSection;
   updates.studentsCount = updates.studentsCount ? Number(updates.studentsCount) : visit.studentsCount;
 
-  const newImageUrls = await persistImageUrls(req.files || []);
-  if (newImageUrls.length) {
-    updates.images = [...visit.images, ...newImageUrls];
-  }
+  const newImageUrls = await persistFiles((req.files && req.files.images) || [], false);
+  const newAttachments = await persistFiles((req.files && req.files.attachments) || [], true);
+  if (newImageUrls.length) updates.images = [...visit.images, ...newImageUrls];
+  if (newAttachments.length) updates.attachments = [...(visit.attachments || []), ...newAttachments];
 
   Object.assign(visit, updates);
   await visit.save();
@@ -259,7 +281,11 @@ async function deleteVisit(req, res) {
   }
 
   for (const imageUrl of visit.images) {
-    await removeImageByUrl(imageUrl);
+    await removeFileByUrl(imageUrl, 'image');
+  }
+
+  for (const attachment of visit.attachments || []) {
+    await removeFileByUrl(attachment.url, attachment.resourceType || 'raw');
   }
 
   await Feedback.deleteMany({ visitId: id });
@@ -281,11 +307,29 @@ async function deleteVisitImage(req, res) {
     return res.status(404).json({ message: 'Visit not found.' });
   }
 
-  visit.images = visit.images.filter((img) => img !== imageUrl);
-  await visit.save();
-  await removeImageByUrl(imageUrl);
+  const attachment = (visit.attachments || []).find((item) => item.url === imageUrl);
+  const isImage = (visit.images || []).includes(imageUrl);
+  let removed = false;
 
-  return res.json({ message: 'Image deleted successfully.', images: visit.images });
+  if (visit.images && visit.images.includes(imageUrl)) {
+    visit.images = visit.images.filter((img) => img !== imageUrl);
+    removed = true;
+  }
+
+  // remove from attachments array
+  if (visit.attachments && visit.attachments.find((a) => a.url === imageUrl)) {
+    visit.attachments = visit.attachments.filter((a) => a.url !== imageUrl);
+    removed = true;
+  }
+
+  if (!removed) {
+    return res.status(404).json({ message: 'File not found on this visit.' });
+  }
+
+  await visit.save();
+  await removeFileByUrl(imageUrl, attachment?.resourceType || (isImage ? 'image' : 'raw'));
+
+  return res.json({ message: 'File deleted successfully.', images: visit.images, attachments: visit.attachments });
 }
 
 async function getDashboardAnalytics(req, res) {

@@ -26,17 +26,17 @@ function Sidebar({ collapsed, onToggle }) {
       )}
     >
       <button
-        className="mb-6 w-full rounded-lg border border-slate-200 px-3 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-100"
+        className="mb-6 w-full rounded-lg border border-slate-200 px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-100"
         onClick={onToggle}
       >
         {collapsed ? '>>' : 'Collapse'}
       </button>
 
       <div className="mb-8 px-2">
-        <h1 className={clsx('font-heading text-lg font-bold text-ocean', collapsed && 'text-center text-base')}>
+        <h1 className={clsx('font-heading text-lg font-bold text-slate-900', collapsed && 'text-center text-base')}>
           {collapsed ? 'IV' : 'Industrial Visit'}
         </h1>
-        {!collapsed && <p className="text-xs text-slate-500">{user?.role === 'student' ? 'Student Portal' : 'Analytics Dashboard'}</p>}
+        {!collapsed && <p className="text-xs text-slate-700 font-medium">{user?.role === 'student' ? 'Student Portal' : 'Analytics Dashboard'}</p>}
       </div>
 
       <nav className="space-y-2">
@@ -49,7 +49,7 @@ function Sidebar({ collapsed, onToggle }) {
               className={({ isActive }) =>
                 clsx(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-colors',
-                  isActive ? 'bg-ocean text-white' : 'text-slate-600 hover:bg-slate-100'
+                  isActive ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
                 )
               }
             >

@@ -20,8 +20,26 @@ router.get('/', authenticate, requireRole('admin'), asyncHandler(getVisits));
 router.get('/student', authenticate, requireRole('student'), asyncHandler(getStudentVisits));
 router.get('/analytics/overview', authenticate, requireRole('admin'), asyncHandler(getDashboardAnalytics));
 router.get('/:id', authenticate, asyncHandler(getVisitById));
-router.post('/', authenticate, requireRole('admin'), upload.array('images', 8), asyncHandler(createVisit));
-router.put('/:id', authenticate, requireRole('admin'), upload.array('images', 8), asyncHandler(updateVisit));
+router.post(
+  '/',
+  authenticate,
+  requireRole('admin'),
+  upload.fields([
+    { name: 'images', maxCount: 8 },
+    { name: 'attachments', maxCount: 5 },
+  ]),
+  asyncHandler(createVisit)
+);
+router.put(
+  '/:id',
+  authenticate,
+  requireRole('admin'),
+  upload.fields([
+    { name: 'images', maxCount: 8 },
+    { name: 'attachments', maxCount: 5 },
+  ]),
+  asyncHandler(updateVisit)
+);
 router.delete('/:id', authenticate, requireRole('admin'), asyncHandler(deleteVisit));
 router.delete('/:id/images', authenticate, requireRole('admin'), asyncHandler(deleteVisitImage));
 

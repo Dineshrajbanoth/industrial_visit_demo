@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Button from './ui/Button';
 
 const branchOptions = ['CSE', 'ECE', 'EEE', 'IT', 'MECH', 'CIVIL'];
@@ -16,6 +16,9 @@ const initialForm = {
 function VisitForm({ onSubmit, loading, initialValues, submitLabel = 'Save Visit' }) {
   const [form, setForm] = useState(initialForm);
   const [files, setFiles] = useState([]);
+  const [attachments, setAttachments] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const [fileErrors, setFileErrors] = useState([]);
 
   useEffect(() => {
     if (initialValues) {
@@ -32,11 +35,15 @@ function VisitForm({ onSubmit, loading, initialValues, submitLabel = 'Save Visit
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    if (fileErrors.length) return;
     const formData = new FormData();
 
     Object.entries(form).forEach(([key, value]) => formData.append(key, value));
     for (const file of files) {
       formData.append('images', file);
+    }
+    for (const file of attachments) {
+      formData.append('attachments', file);
     }
 
     onSubmit(formData, () => {
@@ -44,6 +51,76 @@ function VisitForm({ onSubmit, loading, initialValues, submitLabel = 'Save Visit
       setFiles([]);
     });
   };
+
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+  const MAX_DOC_SIZE = 10 * 1024 * 1024; // 10MB
+  const allowedDocExts = ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.txt'];
+
+  function bytesToKB(bytes) {
+    return Math.round(bytes / 1024);
+  }
+
+  function isAllowedDocument(file) {
+    // Frontend only checks file extension (most reliable)
+    // Backend will validate MIME types thoroughly
+    const lastDot = file.name.lastIndexOf('.');
+    if (lastDot === -1) return false; // No extension
+    const ext = file.name.substring(lastDot).toLowerCase(); // includes the dot
+    return allowedDocExts.includes(ext);
+  }
+
+  const handleImageChange = (fileList) => {
+    const arr = Array.from(fileList || []);
+    const invalid = [];
+    const valid = [];
+
+    for (const f of arr) {
+      if (!f.type.startsWith('image/')) {
+        invalid.push(`${f.name}: not an image`);
+        continue;
+      }
+      if (f.size > MAX_IMAGE_SIZE) {
+        invalid.push(`${f.name}: ${bytesToKB(f.size)}KB exceeds ${bytesToKB(MAX_IMAGE_SIZE)}KB`);
+        continue;
+      }
+      valid.push(f);
+    }
+
+    setFiles(valid);
+    setFileErrors((prev) => [...invalid]);
+  };
+
+  const handleAttachmentsChange = (fileList) => {
+    const arr = Array.from(fileList || []);
+    const invalid = [];
+    const valid = [];
+
+    for (const f of arr) {
+      if (!isAllowedDocument(f)) {
+        const ext = f.name.slice(((f.name.lastIndexOf('.') - 1) >>> 0) + 1).toLowerCase();
+        invalid.push(`${f.name}: unsupported file type (.${ext})`);
+        continue;
+      }
+      if (f.size > MAX_DOC_SIZE) {
+        invalid.push(`${f.name}: ${bytesToKB(f.size)}KB exceeds ${bytesToKB(MAX_DOC_SIZE)}KB`);
+        continue;
+      }
+      valid.push(f);
+    }
+
+    setAttachments(valid);
+    setFileErrors((prev) => [...invalid]);
+  };
+
+  useEffect(() => {
+    // build image previews for selected images
+    const urls = files.map((f) => ({ name: f.name, url: URL.createObjectURL(f) }));
+    setImagePreviews(urls);
+
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u.url));
+    };
+  }, [files]);
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
@@ -103,10 +180,51 @@ function VisitForm({ onSubmit, loading, initialValues, submitLabel = 'Save Visit
           type="file"
           multiple
           accept="image/*"
-          onChange={(e) => setFiles(Array.from(e.target.files || []))}
+          onChange={(e) => handleImageChange(e.target.files)}
           className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
         />
       </label>
+
+      <label className="md:col-span-2 text-sm font-medium text-slate-600">
+        Attach Documents (pdf, docx, pptx, txt)
+        <input
+          type="file"
+          multiple
+          accept=".pdf,.doc,.docx,.ppt,.pptx,.txt"
+          onChange={(e) => handleAttachmentsChange(e.target.files)}
+          className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
+        />
+      </label>
+
+      {fileErrors.length ? (
+        <div className="md:col-span-2 text-sm text-red-600">
+          {fileErrors.map((err, idx) => (
+            <div key={idx}>{err}</div>
+          ))}
+        </div>
+      ) : null}
+
+      {imagePreviews.length ? (
+        <div className="md:col-span-2 grid grid-cols-2 gap-2 md:grid-cols-4">
+          {imagePreviews.map((p) => (
+            <div key={p.url} className="rounded-lg border border-slate-200 p-2 text-center">
+              <img src={p.url} alt={p.name} className="mx-auto h-24 object-contain" />
+              <p className="truncate text-xs mt-2 text-slate-600">{p.name}</p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {attachments.length ? (
+        <div className="md:col-span-2 space-y-2">
+          {attachments.map((att) => (
+            <div key={att.name} className="flex items-center justify-between rounded-lg border border-slate-200 p-2">
+              <div className="text-sm text-slate-700 truncate">{att.name}</div>
+              <div className="text-xs text-slate-500">{Math.round(att.size / 1024)} KB</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="md:col-span-2">
         <Button type="submit" disabled={loading}>

@@ -86,6 +86,22 @@ function VisitDetailsPage() {
         <ImageGallery images={visit.images} />
       </Card>
 
+      <Card>
+        <h3 className="mb-3 font-heading text-lg font-semibold">Attachments</h3>
+        {!visit.attachments?.length ? (
+          <p className="text-sm text-slate-500">No attachments available for this visit.</p>
+        ) : (
+          <div className="space-y-2">
+            {visit.attachments.map((att) => (
+              <div key={att.url} className="flex items-center justify-between rounded-lg border border-slate-200 p-2">
+                <a className="text-sm text-ocean truncate" href={att.url} target="_blank" rel="noreferrer">{att.filename || att.url.split('/').pop()}</a>
+                <span className="text-xs text-slate-500">{att.mimeType}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
       <div className="grid gap-4 xl:grid-cols-2">
         <Card>
           <h3 className="mb-3 font-heading text-lg font-semibold">Add Feedback</h3>

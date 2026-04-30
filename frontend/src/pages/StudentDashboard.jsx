@@ -43,9 +43,9 @@ function StudentDashboard() {
   return (
     <div className="space-y-5">
       <Card className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
-        <p className="text-sm uppercase tracking-[0.2em] text-sky-200">Student Dashboard</p>
-        <h2 className="mt-2 font-heading text-3xl font-semibold">Assigned visits for {user?.branch} - {user?.section}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-slate-200">
+        <p className="text-sm uppercase tracking-[0.2em] text-blue-200">Student Dashboard</p>
+        <h2 className="mt-2 font-heading text-3xl font-bold">Assigned visits for {user?.branch} - {user?.section}</h2>
+        <p className="mt-2 max-w-2xl text-sm text-slate-100">
           Review only the visits assigned to your branch and section, then submit your feedback once per visit.
         </p>
       </Card>
@@ -63,30 +63,30 @@ function StudentDashboard() {
                 {visit.images?.[0] ? (
                   <img src={visit.images[0]} alt={visit.companyName} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-slate-400">No image</div>
+                  <div className="flex h-full items-center justify-center text-sm text-slate-500">No image</div>
                 )}
               </div>
 
-              <h3 className="font-heading text-lg font-semibold text-ink">{visit.companyName}</h3>
-              <p className="mt-1 text-sm text-slate-500">{visit.branch} - Section {visit.section}</p>
+              <h3 className="font-heading text-lg font-bold text-slate-900">{visit.companyName}</h3>
+              <p className="mt-1 text-sm text-slate-700">{visit.branch} - Section {visit.section}</p>
 
-              <div className="mt-4 space-y-2 text-sm text-slate-600">
+              <div className="mt-4 space-y-2 text-sm text-slate-700">
                 <div className="flex items-center gap-2">
-                  <FiCalendar />
+                  <FiCalendar className="text-slate-600" />
                   <span>{new Date(visit.date).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiMapPin />
+                  <FiMapPin className="text-slate-600" />
                   <span>{visit.location}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FiUsers />
+                  <FiUsers className="text-slate-600" />
                   <span>{visit.studentsCount} students</span>
                 </div>
               </div>
 
               <div className="mt-4 flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-ocean">Avg Rating: {visit.avgRating || 0}</p>
+                <p className="text-sm font-semibold text-slate-900">Avg Rating: <span className="text-blue-600">{visit.avgRating || 0}</span></p>
                 <Link to={`/visits/${visit._id}`}>
                   <Button variant="secondary">Give Feedback</Button>
                 </Link>

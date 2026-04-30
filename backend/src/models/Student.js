@@ -21,6 +21,22 @@ const studentSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    // Optional fields for authentication
+    name: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      index: true,
+      sparse: true,
+    },
+    password: {
+      type: String,
+      select: false,
+    },
   },
   { timestamps: true }
 );

@@ -67,12 +67,12 @@ function DashboardPage() {
       </section>
 
       <Card>
-        <h3 className="font-heading text-lg font-semibold">Top Visited Companies</h3>
+        <h3 className="font-heading text-lg font-bold text-slate-900">Top Visited Companies</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {data.topCompanies.map((item) => (
             <div key={item.companyName} className="rounded-lg border border-slate-200 bg-white p-3">
-              <p className="font-semibold text-ink">{item.companyName}</p>
-              <p className="text-sm text-slate-500">Visits: {item.count}</p>
+              <p className="font-semibold text-slate-900">{item.companyName}</p>
+              <p className="text-sm text-slate-700">Visits: {item.count}</p>
             </div>
           ))}
         </div>

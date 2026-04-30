@@ -14,11 +14,23 @@ if (!fs.existsSync(uploadsDir)) {
 
 const PORT = process.env.PORT || 5000;
 
+function handleListenError(error) {
+  if (error && error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Stop the other backend instance or set a different PORT value.`);
+    process.exit(1);
+  }
+
+  console.error('Server failed to start:', error.message);
+  process.exit(1);
+}
+
 connectDB()
   .then(() => {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
     });
+
+    server.on('error', handleListenError);
   })
   .catch((error) => {
     console.error('Failed to start server:', error.message);

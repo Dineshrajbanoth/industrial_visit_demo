@@ -1,4 +1,4 @@
-import { useState } from 'react';
+ import { useState } from 'react';
 import { FiStar } from 'react-icons/fi';
 import Button from './ui/Button';
 

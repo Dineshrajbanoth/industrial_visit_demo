@@ -75,32 +75,55 @@ async function adminLogin(req, res) {
 
 async function studentLogin(req, res) {
   const rollNo = normalizeUpper(req.body.rollNo);
+  const password = req.body.password;
   const branch = normalizeUpper(req.body.branch);
   const section = normalizeUpper(req.body.section);
 
-  if (!rollNo || !branch || !section) {
-    return res.status(400).json({ message: 'Roll number, branch and section are required.' });
+  if (!rollNo) {
+    return res.status(400).json({ message: 'Roll number is required.' });
   }
 
-  let student = await Student.findOne({ rollNo });
+  let student;
 
-  if (student) {
-    const storedBranch = normalizeUpper(student.branch);
-    const storedSection = normalizeUpper(student.section);
+  // Password-based login (preferred when password provided)
+  if (password) {
+    student = await Student.findOne({ rollNo }).select('+password');
 
-    if (storedBranch !== branch || storedSection !== section) {
-      return res.status(401).json({ message: 'Invalid student details.' });
+    if (!student || !student.password) {
+      return res.status(401).json({ message: 'Invalid credentials or password not set.' });
     }
 
-    // Keep existing student records normalized for future auth checks.
-    if (student.branch !== storedBranch || student.section !== storedSection || student.rollNo !== rollNo) {
-      student.branch = storedBranch;
-      student.section = storedSection;
-      student.rollNo = rollNo;
-      await student.save();
+    const isMatch = await bcrypt.compare(password, student.password);
+
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials.' });
     }
   } else {
-    student = await Student.create({ rollNo, branch, section });
+    // Legacy branch/section based login (fallback for existing flows)
+    if (!branch || !section) {
+      return res.status(400).json({ message: 'Roll number, branch and section are required when password is not provided.' });
+    }
+
+    student = await Student.findOne({ rollNo });
+
+    if (student) {
+      const storedBranch = normalizeUpper(student.branch);
+      const storedSection = normalizeUpper(student.section);
+
+      if (storedBranch !== branch || storedSection !== section) {
+        return res.status(401).json({ message: 'Invalid student details.' });
+      }
+
+      // Normalize saved values
+      if (student.branch !== storedBranch || student.section !== storedSection || student.rollNo !== rollNo) {
+        student.branch = storedBranch;
+        student.section = storedSection;
+        student.rollNo = rollNo;
+        await student.save();
+      }
+    } else {
+      student = await Student.create({ rollNo, branch, section });
+    }
   }
 
   const token = issueToken({
@@ -124,8 +147,60 @@ async function studentLogin(req, res) {
   });
 }
 
+async function studentRegister(req, res) {
+  const rollNo = normalizeUpper(req.body.rollNo);
+  const branch = normalizeUpper(req.body.branch);
+  const section = normalizeUpper(req.body.section);
+  const password = req.body.password;
+  const name = normalizeValue(req.body.name);
+  const email = normalizeValue(req.body.email).toLowerCase();
+
+  if (!rollNo || !branch || !section || !password) {
+    return res.status(400).json({ message: 'Roll number, branch, section and password are required.' });
+  }
+
+  const exists = await Student.findOne({ rollNo });
+  if (exists) {
+    return res.status(400).json({ message: 'Student with this roll number already exists.' });
+  }
+
+  const hashed = await bcrypt.hash(password, 10);
+
+  const student = await Student.create({
+    rollNo,
+    branch,
+    section,
+    password: hashed,
+    name: name || undefined,
+    email: email || undefined,
+  });
+
+  const token = issueToken({
+    role: 'student',
+    studentId: student._id.toString(),
+    rollNo: student.rollNo,
+    branch: student.branch,
+    section: student.section,
+  });
+
+  return res.status(201).json({
+    message: 'Student registered successfully',
+    token,
+    user: {
+      role: 'student',
+      studentId: student._id.toString(),
+      rollNo: student.rollNo,
+      branch: student.branch,
+      section: student.section,
+      name: student.name,
+      email: student.email,
+    },
+  });
+}
+
 module.exports = {
   adminLogin,
   studentLogin,
+  studentRegister,
   login: adminLogin,
 };

@@ -11,16 +11,16 @@ function Topbar() {
   return (
     <header className="glass mb-5 flex items-center justify-between rounded-xl2 border border-slate-200 px-4 py-3 shadow-soft">
       <div>
-        <h2 className="font-heading text-xl font-semibold text-ink">Industrial Visit Analytics & Experience Dashboard</h2>
-        <p className="text-sm text-slate-500">Track visits, feedback, and student engagement in one place.</p>
+        <h2 className="font-heading text-xl font-bold text-slate-900">Industrial Visit Analytics & Experience Dashboard</h2>
+        <p className="text-sm text-slate-700">Track visits, feedback, and student engagement in one place.</p>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-soft text-ocean">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
           <FiUser />
         </div>
         <div className="hidden text-right sm:block">
-          <p className="text-sm font-semibold text-ink">{displayName}</p>
-          <p className="text-xs text-slate-500">{isAuthenticated ? roleLabel : 'Viewer Mode'}</p>
+          <p className="text-sm font-semibold text-slate-900">{displayName}</p>
+          <p className="text-xs text-slate-700">{isAuthenticated ? roleLabel : 'Viewer Mode'}</p>
         </div>
         {isAuthenticated && (
           <Button variant="secondary" onClick={logout}>

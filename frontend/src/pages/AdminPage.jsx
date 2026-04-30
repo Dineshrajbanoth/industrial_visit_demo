@@ -133,6 +133,22 @@ function AdminPage() {
                 )}
               </div>
 
+              <div className="mt-3">
+                <p className="mb-2 text-sm font-semibold text-slate-700">Attachments</p>
+                {!visit.attachments?.length ? (
+                  <p className="text-sm text-slate-500">No attachments uploaded.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {visit.attachments.map((att) => (
+                      <div key={att.url} className="rounded-lg border border-slate-200 p-2 flex items-center justify-between">
+                        <a className="text-sm text-ocean truncate" href={att.url} target="_blank" rel="noreferrer">{att.filename || att.url.split('/').pop()}</a>
+                        <Button variant="secondary" onClick={() => handleDeleteImage(visit._id, att.url)}>Remove</Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="mt-4">
                 <p className="mb-2 text-sm font-semibold text-slate-700">Feedback</p>
                 {!feedbackMap[visit._id]?.length ? (

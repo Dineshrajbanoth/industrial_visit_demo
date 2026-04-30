@@ -44,6 +44,17 @@ const visitSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    attachments: {
+      type: [
+        {
+          url: { type: String },
+          filename: { type: String },
+          mimeType: { type: String },
+          resourceType: { type: String },
+        },
+      ],
+      default: [],
+    },
   },
   { timestamps: true }
 );

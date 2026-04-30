@@ -31,6 +31,7 @@ export const authApi = {
   login: (payload) => api.post('/auth/admin-login', payload),
   adminLogin: (payload) => api.post('/auth/admin-login', payload),
   studentLogin: (payload) => api.post('/auth/student-login', payload),
+  studentRegister: (payload) => api.post('/auth/student-register', payload),
 };
 
 export const visitApi = {

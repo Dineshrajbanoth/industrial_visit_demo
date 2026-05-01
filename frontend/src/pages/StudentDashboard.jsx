@@ -45,16 +45,20 @@ function StudentDashboard() {
 
   return (
     <div className="space-y-5">
-      <Card className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white">
-        <p className="text-sm uppercase tracking-[0.2em] text-blue-200">Student Dashboard</p>
-        <h2 className="mt-2 font-heading text-3xl font-bold">Assigned visits for {user?.branch} - {user?.section}</h2>
-        <p className="mt-2 max-w-2xl text-sm text-slate-100">
+      <Card className="border-slate-700/70 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white shadow-lg shadow-slate-900/20">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">
+          Student Dashboard
+        </p>
+        <h2 className="mt-2 font-heading text-3xl font-bold tracking-tight text-white md:text-4xl">
+          Assigned visits for {user?.branch} - {user?.section}
+        </h2>
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200 md:text-base">
           Review only the visits assigned to your branch and section, then submit your feedback once per visit.
         </p>
         <div className="mt-4 max-w-sm">
-          <label className="text-xs uppercase tracking-[0.16em] text-blue-200">Academic Year</label>
+          <label className="text-xs font-medium uppercase tracking-[0.16em] text-slate-300">Academic Year</label>
           <select
-            className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-900 px-3 py-2 text-sm text-white"
+            className="mt-1 w-full rounded-lg border border-slate-600 bg-slate-950/70 px-3 py-2 text-sm text-white shadow-inner shadow-black/10 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-400/30"
             value={academicYear}
             onChange={(e) => setAcademicYear(e.target.value)}
           >

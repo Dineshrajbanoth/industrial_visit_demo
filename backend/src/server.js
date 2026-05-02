@@ -26,8 +26,9 @@ function handleListenError(error) {
 
 connectDB()
   .then(() => {
-    const server = app.listen(PORT, () => {
-      console.log(`Server started on port ${PORT}`);
+    // Bind to 0.0.0.0 so the server is reachable from other machines on the LAN
+    const server = app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server started on port ${PORT} (listening on 0.0.0.0)`);
     });
 
     server.on('error', handleListenError);

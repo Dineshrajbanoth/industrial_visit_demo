@@ -13,8 +13,22 @@ function getStoredToken() {
   return null;
 }
 
+function resolveApiBaseUrl() {
+  const fromEnv = String(import.meta.env.VITE_API_URL || '').trim();
+  if (fromEnv) {
+    return fromEnv;
+  }
+
+  if (typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    return `${protocol}//${hostname}:5000/api`;
+  }
+
+  return 'http://localhost:5000/api';
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: resolveApiBaseUrl(),
 });
 
 api.interceptors.request.use((config) => {

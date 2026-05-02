@@ -3,7 +3,11 @@ import Modal from './ui/Modal';
 
 function toAbsolute(url) {
   if (url.startsWith('http')) return url;
-  const base = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+  const envBase = String(import.meta.env.VITE_API_URL || '').trim();
+  const fallbackBase = typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:5000/api`
+    : 'http://localhost:5000/api';
+  const base = (envBase || fallbackBase).replace('/api', '');
   return `${base}${url}`;
 }
 

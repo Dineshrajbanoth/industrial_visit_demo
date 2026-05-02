@@ -13,11 +13,6 @@ function getStoredToken() {
   return null;
 }
 
-function getDevApiBaseUrl() {
-  const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:5000/api`;
-}
-
 function resolveApiBaseUrl() {
   const fromEnv = String(import.meta.env.VITE_API_URL || '').trim();
   if (fromEnv) {
@@ -26,7 +21,8 @@ function resolveApiBaseUrl() {
 
   if (typeof window !== 'undefined') {
     if (import.meta.env.DEV) {
-      return getDevApiBaseUrl();
+      // In development, route through Vite proxy for consistent cross-device access.
+      return '/api';
     }
 
     // Vercel monorepo setup exposes backend under /_/backend.

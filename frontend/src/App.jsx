@@ -9,6 +9,7 @@ import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/Login';
 import AdminRegisterPage from './pages/AdminRegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
+import LandingPage from './pages/LandingPage';
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { isAuthenticated, user } = useAuth();
@@ -22,19 +23,10 @@ function ProtectedRoute({ children, allowedRoles }) {
   return children;
 }
 
-function HomeRedirect() {
-  const { isAuthenticated, user } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return <Navigate to={user?.role === 'student' ? '/student-dashboard' : '/admin-dashboard'} replace />;
-}
-
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/admin-register" element={<AdminRegisterPage />} />
 
@@ -45,7 +37,6 @@ function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<HomeRedirect />} />
         <Route path="/admin-dashboard" element={<ProtectedRoute allowedRoles={['admin', 'examiner']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="/student-dashboard" element={<ProtectedRoute allowedRoles={['student']}><StudentDashboard /></ProtectedRoute>} />
         <Route path="/visits" element={<VisitsPage />} />
